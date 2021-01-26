@@ -20,20 +20,36 @@ def majority_illusion_count(g):     # how many nodes in graph g experience major
     return counter
 
 
+"""
+# old version
 def mark_top_r_active(g, r):      # marks a proportion r (approximately) of top nodes in g as active
     g_by_node_degree = sorted(g.degree, key=lambda y: y[1], reverse=True)
     n_active = round(r * len(g.nodes))
-    active_min_degree = g_by_node_degree[n_active]
+    print(n_active)
+    print(g_by_node_degree[n_active])
+    active_min_degree = g_by_node_degree[n_active][1]
     for v in g.nodes:
         if g.degree[v] > active_min_degree:
             g.nodes[v]['active'] = 1
         else:
             g.nodes[v]['active'] = 0
+"""
+
+
+def mark_top_r_active(g, r):      # marks a proportion r (approximately) of top nodes in g as active
+    g_by_node_degree = [v[0] for v in sorted(g.degree, key=lambda y: y[1], reverse=True)]
+    n_active = round(r * len(g.nodes))
+    print(g_by_node_degree[n_active])
+    for j in range(n_active):
+        g.nodes[g_by_node_degree[j]]['active'] = 1
+    for j in range(n_active, len(g_by_node_degree)):
+        g.nodes[g_by_node_degree[j]]['active'] = 0
 
 
 def mark_random_r_active(g, r):     # marks a proportion r (approximately) of random nodes in g as active
     n_active = round(r * len(g.nodes))
-    node_sample = random.sample(g.nodes, n_active)
+    node_sample = random.sample(list(g.nodes), n_active)
+    print(len(node_sample))
     for v in g.nodes:
         if v in node_sample:
             g.nodes[v]['active'] = 1
@@ -41,16 +57,10 @@ def mark_random_r_active(g, r):     # marks a proportion r (approximately) of ra
             g.nodes[v]['active'] = 0
 
 
-graph = nx.read_edgelist("oregon1_010505.txt", create_using=nx.DiGraph(), nodetype=int).to_undirected()
-print("graph contains " + str(len(graph.nodes)) + " nodes.")
-
-active = 0
-for x in graph.nodes:
-    if graph.degree[x] > 35:
-        graph.nodes[x]['active'] = 1
-        active += 1
-    else:
-        graph.nodes[x]['active'] = 0
-print("top " + str(active) + " nodes marked as active.")
-
-print(str(majority_illusion_count(graph)) + " nodes experience majority illusion.")
+for i in range(10):
+    graph = nx.read_edgelist("oregon1_010505.txt", create_using=nx.DiGraph(), nodetype=int).to_undirected()
+    mark_random_r_active(graph, (i+1)/20)
+    print("random " + str((i+1)/20) + " nodes marked active")
+    mic = majority_illusion_count(graph)
+    print(str(mic) + " nodes experience majority illusion.")
+    print("fraction experiencing majority illusion " + str(mic/len(graph.nodes)) + "\n")
